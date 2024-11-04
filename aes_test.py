@@ -89,19 +89,18 @@ def T_function(list, i):
     return list
 
 # state只分为4,6,8三种
-def generate_keys(key, condition=4):
-    k_hex = pbkdf2_hmac("sha256", key.encode("utf-8"), b"salt", 10000, dklen=condition * 4)
-    rounds = condition + 6
-    # 初始密钥，直接生成了对应16进制的十进制格式，十进制可直接进行异或运算，也可和16进制进行异或运算，此时的十进制就代表了16进制
-    k_hex_list = [int(f"{b:02x}", 16) for b in k_hex]
-    keys = [k_hex_list[i:i+4] for i in range(0, len(k_hex_list), 4)]
-    for i in range(condition, 4 * (rounds + 1)):
+# state只分为4,6,8三种
+def generate_keys(keys, state=4):
+    rounds = state + 6
+    keys = [int(b, 16) for b in keys]
+    keys = [keys[i:i+4] for i in range(0, len(keys), 4)]
+    for i in range(state, 4 * (rounds + 1)):
         temp = keys[i-1]
-        if i % condition == 0:
-            temp = T_function(temp, i // condition - 1)
-        elif condition > 6 and i % condition == 4:
+        if i % state == 0:
+            temp = T_function(temp, i // state - 1)
+        elif state == 8 and i % state == 4:
             temp = SubWord(temp)
-        keys.append([keys[i-condition][j] ^ temp[j] for j in range(4)])
+        keys.append([keys[i-state][j] ^ temp[j] for j in range(4)])
     return keys
 
 
@@ -133,7 +132,7 @@ def xtime(num):
     if num & 0x80:
         # 0001 1011
         shift_num = shift_num ^ 0x1b
-    return shift_num
+    return shift_num & 0xFF
 
 '''
 真要相乘的时候需要借助xtime函数，因为是基于2倍异或，实际上result是我们需要的结果，无论是乘1 2 3 4 5... 我们可以认为涉及到2的时候会进行xtime
@@ -144,13 +143,12 @@ def xtime(num):
 def mul_GF(a, b):
     result = 0
     for _ in range(8):
-        # 如果b的最低位是1，说明是1 3 5 7
         if b & 0x01:
             result ^= a
-        # 右移一位
         a = xtime(a)
         b >>= 1
-    return result & 0xFF
+    return result
+    
 
 # 字节替代
 def SubBytes(state):
@@ -210,20 +208,37 @@ def AddRoundKey(state, keys, round):
             state[i][j] ^= keys[round * 4 + i][j]
     return state
 
+
+def print_state(state):
+    for i in range(4):
+        for j in range(4):
+            print(f"{state[i][j]:02x}", end=' ')
+        print()
+
 def AES_encrypt(plaintext, key, condition=4):
     keys = generate_keys(key, condition)
-    padded_plaintext = pad(plaintext)
+    padded_plaintext = plaintext
     ciphertext = ''
     for i in range(len(padded_plaintext) // 32):
         block = padded_plaintext[i * 32:(i + 1) * 32]
         state = bytes2matrix(block)
         state = AddRoundKey(state, keys, 0)
         for i in range(1, condition + 7):
+            print("循环开始：" + " 轮数：" + str(i))
+            print_state(state)
             state = SubBytes(state)
+            print("字节替代：" + " 轮数：" + str(i))
+            print_state(state)
             state = ShiftRows(state)
+            print("行移位：" + " 轮数：" + str(i))
+            print_state(state)
             if i != condition + 6:
                 state = MixColumns(state)
+                print("列混合：" + " 轮数：" + str(i))
+                print_state(state)
             state = AddRoundKey(state, keys, i)
+            print("轮密钥加：" + " 轮数：" + str(i))
+            print_state(state)
         ciphertext += matrix2bytes(state)
     return ciphertext
 
@@ -271,13 +286,13 @@ def AES_decrypt(ciphertext, key, condition=4):
             if i != 0:
                 state = inv_MixColumns(state)
         plaintext += matrix2bytes(state)
-    plaintext = unpad(plaintext)
-    return hex2str(plaintext)
+    return plaintext
 
 
 if __name__ == "__main__":
-    test_text = "hello, wor阿萨德按时，ld! i love youjsak实打实的dfsdkajfs1231231我哦基金按实际大街上按时"
-    key = 'this is a secret'
+    key = '2b 7e 15 16 28 ae d2 a6 ab f7 15 88 09 cf 4f 3c'
+    test_text = '3243f6a8885a308d313198a2e0370734'
+    key = key.split(' ')
     
     print("=== AES加密解密测试 ===")
     print("原始文本:", test_text)
@@ -286,6 +301,7 @@ if __name__ == "__main__":
     # 加密
     print("\n=== 加密过程 ===")
     encrypted = AES_encrypt(test_text, key)
+    print("加密结果:", encrypted)
     if encrypted:
         # 解密
         print("\n=== 解密过程 ===")
@@ -298,5 +314,11 @@ if __name__ == "__main__":
         print("解密正确:", test_text == decrypted)
     else:
         print("加密失败")
+
+    state = [[0xd4, 0xbf, 0x5d, 0x30],
+             [0xe0, 0xb4, 0x52, 0xae], 
+             [0xb8, 0x41, 0x11, 0xf1], 
+             [0x1e, 0x27, 0x98, 0xe5]]
+    print(print_state(MixColumns(state)))
 
 
