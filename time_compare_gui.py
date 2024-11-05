@@ -1,7 +1,9 @@
 import os
 import tkinter as tk
 from tkinter import font, scrolledtext, messagebox, filedialog
-
+from DES_AES_lib import des_encrypt, des_decrypt, aes_encrypt, aes_decrypt
+import DES
+import AES
 from time_compare import *
 
 # create main window
@@ -132,6 +134,7 @@ for j, header in enumerate(headers):
 
 # 加密按钮处理函数
 def encrypt():
+    print("===============================================")
     key = key_entry.get("1.0", tk.END).strip()
     if file_mode_var.get():
         if not current_file:
@@ -161,23 +164,23 @@ def encrypt():
     
     # 根据选择执行相应的加密并计时
     if des_custom_var.get():
-        _, time_result = des_encrypt_time(plaintext, key)
-        print("DES Custom: " + time_result)
+        _, time_result = get_time_cost(DES.encrypt, plaintext, key)
+        print("DES Custom: " + str(time_result))
         results["DES Custom"].config(text=f"{time_result:.6f}")
         
     if aes_custom_var.get():
-        _, time_result = aes_encrypt_time(plaintext, key)
-        print("AES Custom: " + time_result)
+        _, time_result = get_time_cost(AES.AES_encrypt, plaintext, key)
+        print("AES Custom: " + str(time_result))
         results["AES Custom"].config(text=f"{time_result:.6f}")
         
     if des_lib_var.get():
-        _, time_result = des_encrypt_time_lib(plaintext, key)
-        print("DES Lib: " + time_result)
+        _, time_result = get_time_cost(des_encrypt, plaintext, key)
+        print("DES Lib: " + str(time_result))
         results["DES Lib"].config(text=f"{time_result:.6f}")
         
     if aes_lib_var.get():
-        _, time_result = aes_encrypt_time_lib(plaintext, key)
-        print("AES Lib: " + time_result)
+        _, time_result = get_time_cost(aes_encrypt, plaintext, key)
+        print("AES Lib: " + str(time_result))
         results["AES Lib"].config(text=f"{time_result:.6f}")
 
 # 添加加密按钮

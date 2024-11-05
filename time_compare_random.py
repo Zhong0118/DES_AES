@@ -1,4 +1,7 @@
 from time_compare import *
+from DES_AES_lib import *
+import DES
+import AES
 
 def generate_test_data(size):
     """生成指定大小的测试数据"""
@@ -23,16 +26,16 @@ def run_comparison():
         test_data = generate_test_data(size)
         
         # 加密测试
-        custom_des_enc, time1 = des_encrypt_time(test_data, key)
-        lib_des_enc, time2 = des_encrypt_time_lib(test_data, key)
-        custom_aes_enc, time3 = aes_encrypt_time(test_data, key)
-        lib_aes_enc, time4 = aes_encrypt_time_lib(test_data, key)
+        custom_des_enc, time1 = get_time_cost(DES.encrypt, test_data, key)
+        lib_des_enc, time2 = get_time_cost(des_encrypt, test_data, key)
+        custom_aes_enc, time3 = get_time_cost(AES.AES_encrypt, test_data, key)
+        lib_aes_enc, time4 = get_time_cost(aes_encrypt, test_data, key)
         
         # 解密测试
-        _, time5 = des_decrypt_time(custom_des_enc, key)
-        _, time6 = des_decrypt_time_lib(lib_des_enc, key)
-        _, time7 = aes_decrypt_time(custom_aes_enc, key)
-        _, time8 = aes_decrypt_time_lib(lib_aes_enc, key)
+        _, time5 = get_time_cost(DES.decrypt, custom_des_enc, key)
+        _, time6 = get_time_cost(des_decrypt, lib_des_enc, key)
+        _, time7 = get_time_cost(AES.AES_decrypt, custom_aes_enc, key)
+        _, time8 = get_time_cost(aes_decrypt, lib_aes_enc, key)
         
         # 存储结果
         results['custom_des_enc'].append(time1)
