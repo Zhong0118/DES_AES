@@ -7,7 +7,7 @@
 5. `time_compare_random.py`集成了随机数据的处理时间的结果的对比
 6. `time_compare_gui.py`构造各算法的图形化界面并且展示时间
 
-![image-20241105155219684](C:\Users\zx\Desktop\DOC\grade4up\BDIC3025安全与隐私\DES_AES\assets\image-20241105155219684.png)
+![image-20241105155219684](assets\image-20241105155219684.png)
 
 > 手搓的AES明显比DES快，但是集成到库中的两个算法的时间相差不大
 
