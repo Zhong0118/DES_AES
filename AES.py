@@ -275,28 +275,4 @@ def AES_decrypt(ciphertext, key, condition=4):
     return hex2str(plaintext)
 
 
-if __name__ == "__main__":
-    test_text = "hello, wor阿萨德按时，ld! i love youjsak实打实的dfsdkajfs1231231我哦基金按实际大街上按时"
-    key = 'this is a secret'
-    
-    print("=== AES加密解密测试 ===")
-    print("原始文本:", test_text)
-    print("密钥:", key)
-    
-    # 加密
-    print("\n=== 加密过程 ===")
-    encrypted = AES_encrypt(test_text, key)
-    if encrypted:
-        # 解密
-        print("\n=== 解密过程 ===")
-        decrypted = AES_decrypt(encrypted, key)
-        print("解密结果:", decrypted)
-        # 验证
-        print("\n=== 验证 ===")
-        print("原始文本:", test_text)
-        print("解密文本:", decrypted)
-        print("解密正确:", test_text == decrypted)
-    else:
-        print("加密失败")
-
 
